@@ -46,6 +46,11 @@ public class TemplatesTest {
  }
 
  @Test
+ public void testIssueTypesIssuesCommits() throws Exception {
+  test("testIssueTypesIssuesCommits");
+ }
+
+ @Test
  public void testIssuesAuthorsCommits() throws Exception {
   test("testIssuesAuthorsCommits");
  }
@@ -69,9 +74,9 @@ public class TemplatesTest {
   mock(mockedRestClient);
 
   GitHubMockInterceptor gitHubMockInterceptor = new GitHubMockInterceptor();
-  gitHubMockInterceptor
-    .addMockedResponse("https://api.github.com/repos/tomasbjerre/git-changelog-lib/issues?state=all&per_page=100&page=1",
-      Resources.toString(getResource("github-issues.json"), UTF_8));
+  gitHubMockInterceptor.addMockedResponse(
+    "https://api.github.com/repos/tomasbjerre/git-changelog-lib/issues?state=all&per_page=100&page=1",
+    Resources.toString(getResource("github-issues.json"), UTF_8));
 
   GitHubServiceFactory.reset();
   GitHubServiceFactory.getGitHubService("https://api.github.com/repos/tomasbjerre/git-changelog-lib", null,

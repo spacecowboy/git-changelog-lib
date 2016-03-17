@@ -24,8 +24,8 @@ import java.util.Map;
 
 import org.eclipse.jgit.lib.ObjectId;
 
-import se.bjurr.gitchangelog.api.exceptions.GitChangelogRepositoryException;
 import se.bjurr.gitchangelog.api.exceptions.GitChangelogIntegrationException;
+import se.bjurr.gitchangelog.api.exceptions.GitChangelogRepositoryException;
 import se.bjurr.gitchangelog.api.model.Changelog;
 import se.bjurr.gitchangelog.api.model.Issue;
 import se.bjurr.gitchangelog.internal.git.GitRepo;
@@ -364,7 +364,8 @@ public class GitChangelogApi {
     transformer.toCommits(diff), //
     transformer.toTags(tags), //
     transformer.toAuthors(diff), //
-    transformer.toIssues(issues));
+    transformer.toIssues(issues),//
+    transformer.toIssueTypes(issues));
  }
 
  private String getTemplateContent() {
