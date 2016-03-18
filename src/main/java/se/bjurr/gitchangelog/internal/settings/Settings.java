@@ -1,21 +1,10 @@
 package se.bjurr.gitchangelog.internal.settings;
 
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.base.Objects.firstNonNull;
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.io.Resources.getResource;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_DATEFORMAT;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_FILE;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_GITHUB_ISSUE_PATTERN;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_IGNORE_COMMITS_REGEXP;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_JIRA_ISSUE_PATTEN;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_NO_ISSUE_NAME;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_READABLE_TAG_NAME;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_REMOVE_ISSUE;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_TIMEZONE;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.DEFAULT_UNTAGGED_NAME;
+import com.google.common.base.Optional;
+import com.google.common.io.Resources;
+import com.google.gson.Gson;
+import se.bjurr.gitchangelog.api.model.Changelog;
+import se.bjurr.gitchangelog.api.model.Issue;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -23,12 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import se.bjurr.gitchangelog.api.model.Changelog;
-import se.bjurr.gitchangelog.api.model.Issue;
-
-import com.google.common.base.Optional;
-import com.google.common.io.Resources;
-import com.google.gson.Gson;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.base.Objects.firstNonNull;
+import static com.google.common.base.Optional.fromNullable;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.io.Resources.getResource;
+import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.*;
 
 public class Settings {
  private static Gson gson = new Gson();
@@ -156,6 +146,12 @@ public class Settings {
   * something that is internal to your project. See {@link SettingsIssue}.
   */
  private List<SettingsIssue> customIssues;
+
+ /**
+  * Labels are added to support any kind of categorization of issues and commits.
+  * See {@link SettingsLabel}.
+  */
+ private final ArrayList<SettingsLabel> labels = new ArrayList<>();
  /**
   * Extended variables is simply a key-value mapping of variables that are made
   * available in the template. Is used, for example, by the Bitbucket plugin to
@@ -211,6 +207,13 @@ public class Settings {
    customIssues = newArrayList();
   }
   customIssues.add(customIssue);
+ }
+
+ public ArrayList<SettingsLabel> getLabels() {
+  return labels;
+ }
+ public void addLabel(SettingsLabel label) {
+  labels.add(label);
  }
 
  public List<SettingsIssue> getCustomIssues() {
@@ -366,4 +369,5 @@ public class Settings {
  public Map<String, Object> getExtendedVariables() {
   return extendedVariables;
  }
+
 }

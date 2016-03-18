@@ -1,18 +1,16 @@
 package se.bjurr.gitchangelog.api;
 
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.io.Resources.getResource;
-import static se.bjurr.gitchangelog.api.GitChangelogApiAsserter.assertThat;
-import static se.bjurr.gitchangelog.internal.integrations.rest.RestClient.mock;
-
+import com.google.common.io.Resources;
 import org.junit.Test;
-
 import se.bjurr.gitchangelog.internal.integrations.github.GitHubMockInterceptor;
 import se.bjurr.gitchangelog.internal.integrations.github.GitHubServiceFactory;
 import se.bjurr.gitchangelog.internal.integrations.jira.JiraClientFactory;
 import se.bjurr.gitchangelog.internal.integrations.rest.RestClientMock;
 
-import com.google.common.io.Resources;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.io.Resources.getResource;
+import static se.bjurr.gitchangelog.api.GitChangelogApiAsserter.assertThat;
+import static se.bjurr.gitchangelog.internal.integrations.rest.RestClient.mock;
 
 public class TemplatesTest {
  @Test
@@ -48,6 +46,11 @@ public class TemplatesTest {
  @Test
  public void testIssueTypesIssuesCommits() throws Exception {
   test("testIssueTypesIssuesCommits");
+ }
+
+ @Test
+ public void testLabelsIssuesCommits() throws Exception {
+  test("testLabelsIssuesCommits");
  }
 
  @Test

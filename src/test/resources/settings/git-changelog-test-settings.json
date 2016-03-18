@@ -20,6 +20,12 @@
  "gitHubApi": "https://api.github.com/repos/tomasbjerre/git-changelog-lib",
  "gitHubIssuePattern": "#([0-9]+)",
 
+ "labels": [
+  {
+   "name": "${PATTERN_GROUP_1}", "pattern": "label:\\s*(.*)$"
+  }
+ ],
+
  "customIssues": [
   { "name": "Incident", "pattern": "INC[0-9]*", "link": "http://inc/${PATTERN_GROUP}" },
   { "name": "CQ", "pattern": "CQ([0-9]+)", "link": "http://cq/${PATTERN_GROUP_1}" },

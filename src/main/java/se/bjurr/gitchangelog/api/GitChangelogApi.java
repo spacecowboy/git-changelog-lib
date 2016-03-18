@@ -1,29 +1,12 @@
 package se.bjurr.gitchangelog.api;
 
-import static com.google.common.base.Charsets.UTF_8;
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Throwables.propagate;
-import static com.google.common.io.Files.createParentDirs;
-import static com.google.common.io.Files.write;
-import static com.google.common.io.Resources.getResource;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.REF_MASTER;
-import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.ZERO_COMMIT;
-import static se.bjurr.gitchangelog.internal.settings.Settings.fromFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Map;
-
+import com.github.mustachejava.DefaultMustacheFactory;
+import com.github.mustachejava.Mustache;
+import com.github.mustachejava.MustacheFactory;
+import com.google.common.base.Optional;
+import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import org.eclipse.jgit.lib.ObjectId;
-
 import se.bjurr.gitchangelog.api.exceptions.GitChangelogIntegrationException;
 import se.bjurr.gitchangelog.api.exceptions.GitChangelogRepositoryException;
 import se.bjurr.gitchangelog.api.model.Changelog;
@@ -38,13 +21,29 @@ import se.bjurr.gitchangelog.internal.model.ParsedIssue;
 import se.bjurr.gitchangelog.internal.model.Transformer;
 import se.bjurr.gitchangelog.internal.settings.Settings;
 import se.bjurr.gitchangelog.internal.settings.SettingsIssue;
+import se.bjurr.gitchangelog.internal.settings.SettingsLabel;
 
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.Mustache;
-import com.github.mustachejava.MustacheFactory;
-import com.google.common.base.Optional;
-import com.google.common.io.Files;
-import com.google.common.io.Resources;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Throwables.propagate;
+import static com.google.common.io.Files.createParentDirs;
+import static com.google.common.io.Files.write;
+import static com.google.common.io.Resources.getResource;
+import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.REF_MASTER;
+import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.ZERO_COMMIT;
+import static se.bjurr.gitchangelog.internal.settings.Settings.fromFile;
 
 public class GitChangelogApi {
 
@@ -284,6 +283,15 @@ public class GitChangelogApi {
  }
 
  /**
+  * Labels are added to support any kind of categorization of issues and commits.
+  * See {@link SettingsLabel}.
+  */
+ public GitChangelogApi withLabel(String name, String pattern) {
+  settings.addLabel(new SettingsLabel(name, pattern));
+  return this;
+ }
+
+ /**
   * Extended variables is simply a key-value mapping of variables that are made
   * available in the template. Is used, for example, by the Bitbucket plugin to
   * supply some internal variables to the changelog context.
@@ -365,7 +373,8 @@ public class GitChangelogApi {
     transformer.toTags(tags), //
     transformer.toAuthors(diff), //
     transformer.toIssues(issues),//
-    transformer.toIssueTypes(issues));
+    transformer.toIssueTypes(issues),//
+    transformer.toIssueLabels(issues));
  }
 
  private String getTemplateContent() {

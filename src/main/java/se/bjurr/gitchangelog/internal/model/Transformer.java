@@ -1,5 +1,21 @@
 package se.bjurr.gitchangelog.internal.model;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Multimap;
+import se.bjurr.gitchangelog.api.model.*;
+import se.bjurr.gitchangelog.internal.git.model.GitCommit;
+import se.bjurr.gitchangelog.internal.git.model.GitTag;
+import se.bjurr.gitchangelog.internal.issues.IssueParser;
+import se.bjurr.gitchangelog.internal.settings.IssuesUtil;
+import se.bjurr.gitchangelog.internal.settings.Settings;
+import se.bjurr.gitchangelog.internal.settings.SettingsIssue;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Matcher;
+
 import static com.google.common.collect.Iterables.filter;
 import static com.google.common.collect.Iterables.transform;
 import static com.google.common.collect.Lists.newArrayList;
@@ -9,31 +25,6 @@ import static com.google.common.collect.Multimaps.index;
 import static java.util.TimeZone.getTimeZone;
 import static java.util.regex.Pattern.compile;
 import static se.bjurr.gitchangelog.internal.common.GitPredicates.ignoreCommits;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-
-import se.bjurr.gitchangelog.api.model.Author;
-import se.bjurr.gitchangelog.api.model.Commit;
-import se.bjurr.gitchangelog.api.model.Issue;
-import se.bjurr.gitchangelog.api.model.IssueType;
-import se.bjurr.gitchangelog.api.model.Tag;
-import se.bjurr.gitchangelog.internal.git.model.GitCommit;
-import se.bjurr.gitchangelog.internal.git.model.GitTag;
-import se.bjurr.gitchangelog.internal.issues.IssueParser;
-import se.bjurr.gitchangelog.internal.settings.IssuesUtil;
-import se.bjurr.gitchangelog.internal.settings.Settings;
-import se.bjurr.gitchangelog.internal.settings.SettingsIssue;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Multimap;
 
 public class Transformer {
 
@@ -117,7 +108,8 @@ public class Transformer {
       input.getName(), //
       input.getTitle().or(""), //
       input.getIssue(), //
-      input.getLink());
+      input.getLink(),
+      input.getLabels());
    }
   };
  }
@@ -196,5 +188,24 @@ public class Transformer {
    issueTypes.add(new IssueType(issuesPerName.get(name), name));
   }
   return issueTypes;
+ }
+
+ public List<IssueLabel> toIssueLabels(List<ParsedIssue> issues) {
+  Map<String, List<Issue>> labelIssues = newTreeMap();
+
+  for (ParsedIssue issue : filterWithCommits(issues)) {
+   for (String label : issue.getLabels()) {
+    if (!labelIssues.containsKey(label)) {
+     labelIssues.put(label, new ArrayList<Issue>());
+    }
+    labelIssues.get(label).add(parsedIssueToIssue().apply(issue));
+   }
+  }
+
+  List<IssueLabel> result = new ArrayList<>();
+  for (String label : labelIssues.keySet()) {
+   result.add(new IssueLabel(labelIssues.get(label), label));
+  }
+  return result;
  }
 }

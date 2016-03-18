@@ -1,15 +1,15 @@
 package se.bjurr.gitchangelog.api;
 
+import com.google.common.io.Resources;
+import com.google.gson.GsonBuilder;
+
+import java.net.URL;
+
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.io.Resources.getResource;
 import static org.junit.Assert.assertEquals;
 import static se.bjurr.gitchangelog.api.GitChangelogApi.gitChangelogApiBuilder;
 import static se.bjurr.gitchangelog.api.GitChangelogApiConstants.ZERO_COMMIT;
-
-import java.net.URL;
-
-import com.google.common.io.Resources;
-import com.google.gson.GsonBuilder;
 
 public class GitChangelogApiAsserter {
 
@@ -71,6 +71,7 @@ public class GitChangelogApiAsserter {
     .withCustomIssue("Incident", "INC[0-9]*", "http://inc/${PATTERN_GROUP}") //
     .withCustomIssue("CQ", "CQ([0-9]+)", "http://cq/${PATTERN_GROUP_1}") //
     .withCustomIssue("Bugs", "#bug", null) //
+    .withLabel("${PATTERN_GROUP_1}", "label:\\s*(.*)$")
     .withTemplatePath(templatePath) //
     .render() //
     .trim());
