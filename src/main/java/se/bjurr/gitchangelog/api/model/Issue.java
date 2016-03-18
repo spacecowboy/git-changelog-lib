@@ -3,8 +3,6 @@ package se.bjurr.gitchangelog.api.model;
 import se.bjurr.gitchangelog.api.model.interfaces.IAuthors;
 import se.bjurr.gitchangelog.api.model.interfaces.ICommits;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -22,9 +20,8 @@ public class Issue implements ICommits, IAuthors {
  private final String issue;
  private final boolean hasLink;
  private final String link;
- private final Collection<String> labels;
 
- public Issue(List<Commit> commits, List<Author> authors, String name, String title, String issue, String link, Collection<String> labels) {
+ public Issue(List<Commit> commits, List<Author> authors, String name, String title, String issue, String link) {
   checkState(!commits.isEmpty(), "commits");
   this.commits = commits;
   this.authors = checkNotNull(authors, "authors");
@@ -35,7 +32,6 @@ public class Issue implements ICommits, IAuthors {
   this.hasIssue = !isNullOrEmpty(issue);
   this.link = nullToEmpty(link);
   this.hasLink = !isNullOrEmpty(link);
-  this.labels = labels == null ? new ArrayList<String>() : labels;
  }
 
  public String getTitle() {
@@ -81,7 +77,4 @@ public class Issue implements ICommits, IAuthors {
   return "Issue: " + issue;
  }
 
- public Collection<String> getLabels() {
-  return labels;
- }
 }

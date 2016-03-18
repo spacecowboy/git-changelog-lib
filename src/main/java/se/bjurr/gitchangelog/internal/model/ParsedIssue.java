@@ -4,7 +4,6 @@ import com.google.common.base.Optional;
 import se.bjurr.gitchangelog.internal.git.model.GitCommit;
 import se.bjurr.gitchangelog.internal.model.interfaces.IGitCommitReferer;
 
-import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Optional.fromNullable;
@@ -14,7 +13,6 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class ParsedIssue implements IGitCommitReferer {
  private final List<GitCommit> gitCommits = newArrayList();
- private final Collection<String> labels = newArrayList();
  private final String name;
  private final String title;
  private final String link;
@@ -80,14 +78,5 @@ public class ParsedIssue implements IGitCommitReferer {
 
  public String getIssue() {
   return issue;
- }
-
- public Collection<String> getLabels()
- {
-  return labels;
- }
-
- public void addLabels(Collection<String> labels) {
-  this.labels.addAll(labels);
  }
 }

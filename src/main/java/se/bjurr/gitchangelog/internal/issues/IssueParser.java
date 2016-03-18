@@ -8,14 +8,13 @@ import se.bjurr.gitchangelog.internal.integrations.github.GitHubIssue;
 import se.bjurr.gitchangelog.internal.integrations.jira.JiraClient;
 import se.bjurr.gitchangelog.internal.integrations.jira.JiraIssue;
 import se.bjurr.gitchangelog.internal.model.ParsedIssue;
+import se.bjurr.gitchangelog.internal.model.ParsedLabel;
 import se.bjurr.gitchangelog.internal.settings.IssuesUtil;
 import se.bjurr.gitchangelog.internal.settings.Settings;
 import se.bjurr.gitchangelog.internal.settings.SettingsIssue;
 import se.bjurr.gitchangelog.internal.settings.SettingsLabel;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 
 import static com.google.common.base.Objects.firstNonNull;
@@ -47,6 +46,14 @@ public class IssueParser {
   return commits;
  }
 
+ public Collection<ParsedLabel> parseForLabels() {
+  LinkedHashSet<ParsedLabel> labels = new LinkedHashSet<>();
+  for (GitCommit commit: commits) {
+   labels.addAll(parseForLabelsInCommit(settings.getLabels(), commit));
+  }
+  return labels;
+ }
+
  public List<ParsedIssue> parseForIssues() {
   Map<String, ParsedIssue> foundIssues = newHashMap();
 
@@ -65,17 +72,14 @@ public class IssueParser {
 
   List<SettingsIssue> patterns = new IssuesUtil(settings).getIssues();
 
-  List<SettingsLabel> labelPatterns = settings.getLabels();
-
   for (GitCommit gitCommit : commits) {
-   List<String> labels = parseForLabelsInCommit(labelPatterns, gitCommit);
-   parseForIssuesInCommit(foundIssues, gitHubHelper, jiraClient, patterns, gitCommit, labels);
+   parseForIssuesInCommit(foundIssues, gitHubHelper, jiraClient, patterns, gitCommit);
   }
   return usingToString().sortedCopy(foundIssues.values());
  }
 
- private List<String> parseForLabelsInCommit(List<SettingsLabel> labelPatterns, GitCommit gitCommit) {
-  ArrayList<String> labels = new ArrayList<>();
+ private List<ParsedLabel> parseForLabelsInCommit(List<SettingsLabel> labelPatterns, GitCommit gitCommit) {
+  ArrayList<ParsedLabel> labels = new ArrayList<>();
   for (SettingsLabel labelPattern: labelPatterns) {
    Matcher matcher = compile(labelPattern.getPattern()).matcher(gitCommit.getMessage());
    while (matcher.find()) {
@@ -85,15 +89,14 @@ public class IssueParser {
     for (int i = 0; i <= matcher.groupCount(); i++) {
      name = name.replaceAll("\\$\\{PATTERN_GROUP_" + i + "\\}", firstNonNull(matcher.group(i), ""));
     }
-    labels.add(name);
+    labels.add(new ParsedLabel(name));
    }
   }
   return labels;
  }
 
  private void parseForIssuesInCommit(Map<String, ParsedIssue> foundIssues, GitHubHelper gitHubHelper,
-                                     JiraClient jiraClient, List<SettingsIssue> patterns, GitCommit gitCommit,
-                                     List<String> labels) {
+                                     JiraClient jiraClient, List<SettingsIssue> patterns, GitCommit gitCommit) {
   boolean commitMappedToIssue = false;
   for (SettingsIssue issuePattern : patterns) {
    Matcher matcher = compile(issuePattern.getPattern()).matcher(gitCommit.getMessage());
@@ -103,11 +106,11 @@ public class IssueParser {
      try {
       if (issuePattern.getType() == GITHUB && gitHubHelper != null
         && gitHubHelper.getIssueFromAll(matched).isPresent()) {
-       putGitHubIssue(foundIssues, gitHubHelper, issuePattern, matched).addLabels(labels);
+       putGitHubIssue(foundIssues, gitHubHelper, issuePattern, matched);
       } else if (issuePattern.getType() == JIRA && jiraClient != null && jiraClient.getIssue(matched).isPresent()) {
-       putJiraIssue(foundIssues, jiraClient, issuePattern, matched).addLabels(labels);
+       putJiraIssue(foundIssues, jiraClient, issuePattern, matched);
       } else {
-       putCustomIssue(foundIssues, issuePattern, matcher, matched).addLabels(labels);
+       putCustomIssue(foundIssues, issuePattern, matcher, matched);
       }
      } catch (Exception e) {
       LOG.error("Will ignore issue \"" + matched + "\"", e);
@@ -123,7 +126,6 @@ public class IssueParser {
   }
   if (!commitMappedToIssue) {
    ParsedIssue noIssue = new ParsedIssue(settings.getNoIssueName(), null, null);
-   noIssue.addLabels(labels);
    if (!foundIssues.containsKey(noIssue.getName())) {
     foundIssues.put(noIssue.getName(), noIssue);
    }

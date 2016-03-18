@@ -5,11 +5,11 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class IssueLabel {
+public class CommitLabel {
  private final String name;
  private final List<Issue> issues;
 
- public IssueLabel(List<Issue> issues, String name) {
+ public CommitLabel(List<Issue> issues, String name) {
   this.issues = checkNotNull(issues, "issues");
   this.name = checkNotNull(name, "name");
  }

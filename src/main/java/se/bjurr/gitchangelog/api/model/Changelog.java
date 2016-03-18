@@ -14,10 +14,10 @@ public class Changelog implements ICommits, IAuthors, IIssues {
  private final List<Author> authors;
  private final List<Issue> issues;
  private final List<IssueType> issueTypes;
- private final List<IssueLabel> labels;
+ private final List<CommitLabel> labels;
 
  public Changelog(List<Commit> commits, List<Tag> tags, List<Author> authors, List<Issue> issues,
-                  List<IssueType> issueTypes, List<IssueLabel> issueLabels) {
+                  List<IssueType> issueTypes, List<CommitLabel> issueLabels) {
   this.commits = checkNotNull(commits, "commits");
   this.tags = checkNotNull(tags, "tags");
   this.authors = checkNotNull(authors, "authors");
@@ -49,7 +49,7 @@ public class Changelog implements ICommits, IAuthors, IIssues {
   return issueTypes;
  }
 
- public List<IssueLabel> getIssueLabels() {
+ public List<CommitLabel> getIssueLabels() {
   return labels;
  }
 }

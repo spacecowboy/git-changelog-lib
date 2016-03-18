@@ -108,8 +108,7 @@ public class Transformer {
       input.getName(), //
       input.getTitle().or(""), //
       input.getIssue(), //
-      input.getLink(),
-      input.getLabels());
+      input.getLink());
    }
   };
  }
@@ -190,21 +189,21 @@ public class Transformer {
   return issueTypes;
  }
 
- public List<IssueLabel> toIssueLabels(List<ParsedIssue> issues) {
-  Map<String, List<Issue>> labelIssues = newTreeMap();
+ public List<CommitLabel> toLabels(List<GitCommit> commits) {
+  Map<String, List<Issue>> labelToCommits = newTreeMap();
 
-  for (ParsedIssue issue : filterWithCommits(issues)) {
-   for (String label : issue.getLabels()) {
-    if (!labelIssues.containsKey(label)) {
-     labelIssues.put(label, new ArrayList<Issue>());
+  for (GitCommit commit : commits) {
+   for (String label : commit.la) {
+    if (!labelToCommits.containsKey(label)) {
+     labelToCommits.put(label, new ArrayList<Issue>());
     }
-    labelIssues.get(label).add(parsedIssueToIssue().apply(issue));
+    labelToCommits.get(label).add(parsedIssueToIssue().apply(issue));
    }
   }
 
-  List<IssueLabel> result = new ArrayList<>();
-  for (String label : labelIssues.keySet()) {
-   result.add(new IssueLabel(labelIssues.get(label), label));
+  List<CommitLabel> result = new ArrayList<>();
+  for (String label : labelToCommits.keySet()) {
+   result.add(new CommitLabel(labelToCommits.get(label), label));
   }
   return result;
  }

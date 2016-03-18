@@ -1,12 +1,12 @@
 package se.bjurr.gitchangelog.internal.settings;
 
-import se.bjurr.gitchangelog.api.model.IssueLabel;
+import se.bjurr.gitchangelog.api.model.CommitLabel;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class SettingsLabel {
  /**
-  * Name of the label. This is the {@link IssueLabel#getName()}. For example "Bug" or "Feature".
+  * Name of the label. This is the {@link CommitLabel#getName()}. For example "Bug" or "Feature".
   * It supports variables like:<br>
   * <code>${PATTERN_GROUP}</code><br>
   * <code>${PATTERN_GROUP_1}</code><br>

@@ -18,6 +18,7 @@ import se.bjurr.gitchangelog.internal.git.model.GitTag;
 import se.bjurr.gitchangelog.internal.integrations.mediawiki.MediaWikiClient;
 import se.bjurr.gitchangelog.internal.issues.IssueParser;
 import se.bjurr.gitchangelog.internal.model.ParsedIssue;
+import se.bjurr.gitchangelog.internal.model.ParsedLabel;
 import se.bjurr.gitchangelog.internal.model.Transformer;
 import se.bjurr.gitchangelog.internal.settings.Settings;
 import se.bjurr.gitchangelog.internal.settings.SettingsIssue;
@@ -29,6 +30,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -366,7 +368,9 @@ public class GitChangelogApi {
   GitRepoData gitRepoData = gitRepo.getGitRepoData(fromId, toId, settings.getUntaggedName());
   List<GitCommit> diff = gitRepoData.getGitCommits();
   List<GitTag> tags = gitRepoData.getGitTags();
-  List<ParsedIssue> issues = new IssueParser(settings, diff).parseForIssues();
+  IssueParser parser = new IssueParser(settings, diff);
+  List<ParsedIssue> issues = parser.parseForIssues();
+  Collection<ParsedLabel> labels = parser.parseForLabels();
   Transformer transformer = new Transformer(settings);
   return new Changelog(//
     transformer.toCommits(diff), //
@@ -374,7 +378,7 @@ public class GitChangelogApi {
     transformer.toAuthors(diff), //
     transformer.toIssues(issues),//
     transformer.toIssueTypes(issues),//
-    transformer.toIssueLabels(issues));
+    transformer.toLabels(labels));
  }
 
  private String getTemplateContent() {
