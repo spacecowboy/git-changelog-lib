@@ -24,6 +24,10 @@ public class GitChangelogApiAsserter {
   return new GitChangelogApiAsserter(template);
  }
 
+ public static GitChangelogApiAsserter assertThat(String template, String settings) {
+  return new GitChangelogApiAsserter(template).withSettings(settings);
+ }
+
  public GitChangelogApiAsserter withSettings(String settings) {
   this.settings = settings;
   return this;
@@ -46,9 +50,10 @@ public class GitChangelogApiAsserter {
   String settings = toJson(gitChangelogApiBuilder.getSettings());
   String templateContent = Resources.toString(getResource(templatePath), UTF_8);
 
+  String actual = gitChangelogApiBuilder.render().trim();
+
   assertEquals("Test:\n" + file + "\nTemplate:\n" + templateContent + "\nChangelog: " + changelog + "\nSettings: "
-    + settings, expected, gitChangelogApiBuilder //
-    .render().trim());
+    + settings, expected, actual);
 
   // Test lib
   assertEquals("With lib: " + file, expected, gitChangelogApiBuilder() //

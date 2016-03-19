@@ -42,10 +42,12 @@ public class Transformer {
     List<GitCommit> gitCommits = input.getGitCommits();
     List<Commit> commits = toCommits(gitCommits);
     List<Author> authors = toAuthors(gitCommits);
-    List<ParsedIssue> parsedIssues;
-    parsedIssues = new IssueParser(settings, gitCommits).parseForIssues();
+    IssueParser.Pair<Set<ParsedLabel>, List<ParsedIssue>> p = new IssueParser(settings, gitCommits).parseForIssues();
+    List<ParsedIssue> parsedIssues = p.second;
     List<Issue> issues = toIssues(parsedIssues);
-    return new Tag(toReadableTagName(input.getName()), commits, authors, issues, toIssueTypes(parsedIssues));
+    Set<ParsedLabel> parsedLabels = p.first;
+    List<CommitLabel> labels = toLabels(parsedLabels);
+    return new Tag(toReadableTagName(input.getName()), commits, authors, issues, toIssueTypes(parsedIssues), labels);
    }
   });
 
@@ -189,22 +191,29 @@ public class Transformer {
   return issueTypes;
  }
 
- public List<CommitLabel> toLabels(List<GitCommit> commits) {
-  Map<String, List<Issue>> labelToCommits = newTreeMap();
+ public List<CommitLabel> toLabels(Set<ParsedLabel> labels) {
+  Iterable<ParsedLabel> labelsWithIssues = filterWithIssues(labels);
 
-  for (GitCommit commit : commits) {
-   for (String label : commit.la) {
-    if (!labelToCommits.containsKey(label)) {
-     labelToCommits.put(label, new ArrayList<Issue>());
-    }
-    labelToCommits.get(label).add(parsedIssueToIssue().apply(issue));
+  return newArrayList(transform(labelsWithIssues, parsedLabelToLabel()));
+ }
+
+ private Function<ParsedLabel, CommitLabel> parsedLabelToLabel() {
+  return new Function<ParsedLabel, CommitLabel>() {
+   @Override
+   public CommitLabel apply(ParsedLabel input) {
+    List<ParsedIssue> issues = input.getIssues();
+    return new CommitLabel(transform(issues, parsedIssueToIssue()),
+            input.getName());
    }
-  }
+  };
+ }
 
-  List<CommitLabel> result = new ArrayList<>();
-  for (String label : labelToCommits.keySet()) {
-   result.add(new CommitLabel(labelToCommits.get(label), label));
-  }
-  return result;
+ private Iterable<ParsedLabel> filterWithIssues(Set<ParsedLabel> labels) {
+  return filter(labels, new Predicate<ParsedLabel>() {
+   @Override
+   public boolean apply(ParsedLabel label) {
+    return !label.getIssues().isEmpty();
+   }
+  });
  }
 }

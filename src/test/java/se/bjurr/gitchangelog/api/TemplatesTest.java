@@ -50,7 +50,7 @@ public class TemplatesTest {
 
  @Test
  public void testLabelsIssuesCommits() throws Exception {
-  test("testLabelsIssuesCommits");
+  test("testLabelsIssuesCommits", "git-changelog-testlabels-settings.json");
  }
 
  @Test
@@ -61,6 +61,33 @@ public class TemplatesTest {
  @Test
  public void testAuthorsCommits() throws Exception {
   test("testAuthorsCommits");
+ }
+
+
+ private void test(String testcase, String settings) throws Exception {
+  JiraClientFactory.reset();
+
+  RestClientMock mockedRestClient = new RestClientMock();
+  mockedRestClient //
+          .addMockedResponse("/repos/tomasbjerre/git-changelog-lib/issues?state=all",
+                  Resources.toString(getResource("github-issues.json"), UTF_8)) //
+          .addMockedResponse("/jira/rest/api/2/issue/JIR-1234?fields=parent,summary",
+                  Resources.toString(getResource("jira-issue-jir-1234.json"), UTF_8)) //
+          .addMockedResponse("/jira/rest/api/2/issue/JIR-5262?fields=parent,summary",
+                  Resources.toString(getResource("jira-issue-jir-5262.json"), UTF_8));
+  mock(mockedRestClient);
+
+  GitHubMockInterceptor gitHubMockInterceptor = new GitHubMockInterceptor();
+  gitHubMockInterceptor.addMockedResponse(
+          "https://api.github.com/repos/tomasbjerre/git-changelog-lib/issues?state=all&per_page=100&page=1",
+          Resources.toString(getResource("github-issues.json"), UTF_8));
+
+  GitHubServiceFactory.reset();
+  GitHubServiceFactory.getGitHubService("https://api.github.com/repos/tomasbjerre/git-changelog-lib", null,
+          gitHubMockInterceptor);
+
+  assertThat(testcase + ".mustache", settings)//
+          .rendersTo(testcase + ".md");
  }
 
  private void test(String testcase) throws Exception {

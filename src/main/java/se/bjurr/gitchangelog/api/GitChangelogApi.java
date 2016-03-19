@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Optional.absent;
@@ -369,8 +370,9 @@ public class GitChangelogApi {
   List<GitCommit> diff = gitRepoData.getGitCommits();
   List<GitTag> tags = gitRepoData.getGitTags();
   IssueParser parser = new IssueParser(settings, diff);
-  List<ParsedIssue> issues = parser.parseForIssues();
-  Collection<ParsedLabel> labels = parser.parseForLabels();
+  IssueParser.Pair<Set<ParsedLabel>, List<ParsedIssue>> p = parser.parseForIssues();
+  Set<ParsedLabel> labels = p.first;
+  List<ParsedIssue> issues = p.second;
   Transformer transformer = new Transformer(settings);
   return new Changelog(//
     transformer.toCommits(diff), //

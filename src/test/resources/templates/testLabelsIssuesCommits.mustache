@@ -2,23 +2,18 @@
 
 Changelog of Git Changelog.
 
+{{#tags}}
+
+## [{{name}}](https://github.com/neo4j/neo4j/releases/tag/{{name}})
+
 {{#labels}}
-## {{label}}
+### {{name}}
 
  {{#issues}}
-   {{#hasLink}}
-### [{{issue}}]({{link}}) {{title}}
-   {{/hasLink}}
-   {{^hasLink}}
-### {{title}}
-   {{/hasLink}}
-
-  {{#commits}}
-#### {{authorName}} - {{commitTime}}
-[{{hash}}](https://server/{{hash}})
-
- {{{message}}}
-
-  {{/commits}}
+     {{#commits}}
+* {{{messageTitle}}} [{{hash}}](https://github.com/neo4j/neo4j/commit/{{hash}}), {{issue}} ({{title}})
+     {{/commits}}
  {{/issues}}
+
 {{/labels}}
+{{/tags}}

@@ -46,16 +46,9 @@ public class IssueParser {
   return commits;
  }
 
- public Collection<ParsedLabel> parseForLabels() {
-  LinkedHashSet<ParsedLabel> labels = new LinkedHashSet<>();
-  for (GitCommit commit: commits) {
-   labels.addAll(parseForLabelsInCommit(settings.getLabels(), commit));
-  }
-  return labels;
- }
-
- public List<ParsedIssue> parseForIssues() {
+ public Pair<Set<ParsedLabel>, List<ParsedIssue>> parseForIssues() {
   Map<String, ParsedIssue> foundIssues = newHashMap();
+  LinkedHashSet<ParsedLabel> labels = new LinkedHashSet<>();
 
   GitHubHelper gitHubHelper = null;
   if (settings.getGitHubApi().isPresent()) {
@@ -73,13 +66,27 @@ public class IssueParser {
   List<SettingsIssue> patterns = new IssuesUtil(settings).getIssues();
 
   for (GitCommit gitCommit : commits) {
-   parseForIssuesInCommit(foundIssues, gitHubHelper, jiraClient, patterns, gitCommit);
+   Set<ParsedLabel> commitLabels = parseForLabelsInCommit(settings.getLabels(), gitCommit);
+   deduplicate(labels, commitLabels);
+   labels.addAll(commitLabels);
+   parseForIssuesInCommit(foundIssues, gitHubHelper, jiraClient, patterns, gitCommit, commitLabels);
   }
-  return usingToString().sortedCopy(foundIssues.values());
+  // todo return labels
+  return new Pair<Set<ParsedLabel>, List<ParsedIssue>>(labels, usingToString().sortedCopy(foundIssues.values()));
+  //return usingToString().sortedCopy(foundIssues.values());
  }
 
- private List<ParsedLabel> parseForLabelsInCommit(List<SettingsLabel> labelPatterns, GitCommit gitCommit) {
-  ArrayList<ParsedLabel> labels = new ArrayList<>();
+ private void deduplicate(LinkedHashSet<ParsedLabel> superSet, Set<ParsedLabel> set) {
+  for (ParsedLabel superLabel: superSet) {
+   if (set.contains(superLabel)) {
+    set.remove(superLabel);
+    set.add(superLabel);
+   }
+  }
+ }
+
+ private Set<ParsedLabel> parseForLabelsInCommit(List<SettingsLabel> labelPatterns, GitCommit gitCommit) {
+  LinkedHashSet<ParsedLabel> labels = new LinkedHashSet<>();
   for (SettingsLabel labelPattern: labelPatterns) {
    Matcher matcher = compile(labelPattern.getPattern()).matcher(gitCommit.getMessage());
    while (matcher.find()) {
@@ -96,7 +103,8 @@ public class IssueParser {
  }
 
  private void parseForIssuesInCommit(Map<String, ParsedIssue> foundIssues, GitHubHelper gitHubHelper,
-                                     JiraClient jiraClient, List<SettingsIssue> patterns, GitCommit gitCommit) {
+                                     JiraClient jiraClient, List<SettingsIssue> patterns, GitCommit gitCommit,
+                                     Set<ParsedLabel> commitLabels) {
   boolean commitMappedToIssue = false;
   for (SettingsIssue issuePattern : patterns) {
    Matcher matcher = compile(issuePattern.getPattern()).matcher(gitCommit.getMessage());
@@ -104,13 +112,17 @@ public class IssueParser {
     String matched = matcher.group();
     if (!foundIssues.containsKey(matched)) {
      try {
+      ParsedIssue issue;
       if (issuePattern.getType() == GITHUB && gitHubHelper != null
         && gitHubHelper.getIssueFromAll(matched).isPresent()) {
-       putGitHubIssue(foundIssues, gitHubHelper, issuePattern, matched);
+       issue = putGitHubIssue(foundIssues, gitHubHelper, issuePattern, matched);
       } else if (issuePattern.getType() == JIRA && jiraClient != null && jiraClient.getIssue(matched).isPresent()) {
-       putJiraIssue(foundIssues, jiraClient, issuePattern, matched);
+       issue = putJiraIssue(foundIssues, jiraClient, issuePattern, matched);
       } else {
-       putCustomIssue(foundIssues, issuePattern, matcher, matched);
+       issue = putCustomIssue(foundIssues, issuePattern, matcher, matched);
+      }
+      for (ParsedLabel label: commitLabels) {
+       label.addIssue(issue);
       }
      } catch (Exception e) {
       LOG.error("Will ignore issue \"" + matched + "\"", e);
@@ -170,5 +182,15 @@ public class IssueParser {
     link);
   foundIssues.put(matched, parsedIssue);
   return parsedIssue;
+ }
+
+ public static class Pair<T1, T2> {
+  public final T1 first;
+  public final T2 second;
+
+  public Pair(T1 first, T2 second) {
+   this.first = first;
+   this.second = second;
+  }
  }
 }
